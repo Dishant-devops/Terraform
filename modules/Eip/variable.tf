@@ -1,1 +1,0 @@
-# variable "nat_eip_tags" {}

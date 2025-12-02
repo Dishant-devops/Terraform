@@ -37,7 +37,7 @@ module "Nat_Gateway" {
 }
 
 
-##Route Table
+## Route Table
 module "route_table_module" {
   source     = "./modules/Route_table"
   for_each   = var.Route_table_config
@@ -49,18 +49,35 @@ module "route_table_module" {
 }
 
 ## Route Table Subnet Association 
-
-# module "route_table_association" {
-#   source = "./modules/Route_table_association"
-#   for_each = var.route_table_association
-#   subnet_id = var.subnet_id
-#   route_table_id = var.route_table_id
-# }
-
-
 module "route_table_association" {
   source         = "./modules/Route_table_association"
   for_each       = var.route_table_association
   subnet_id      = module.subnet_module[each.value.subnet_name].subnet_id
   route_table_id = module.route_table_module[each.value.route_table_name].route_table_id
+}
+
+
+## Iam role for eks 
+module "iam" {
+  source       = "./modules/iam-eks"
+  cluster_name = var.cluster_name
+}
+
+## EKS
+module "eks_cluster" {
+  source       = "./modules/eks"
+  cluster_name = var.cluster_name
+  # Pass ONLY the private subnets here
+  # Assuming your subnet module outputs "private_subnet_ids"
+private_subnet_ids = [
+    for key, subnet in module.subnet_module : subnet.subnet_id
+    if can(regex("private", key))
+  ]
+  cluster_role_arn   = module.iam.cluster_role_arn
+  node_role_arn      = module.iam.node_role_arn
+  min_size           = var.min_size
+  max_size           = var.max_size
+  desired_size       = var.desired_size
+  instance_types     = ["t3.medium"]
+  depends_on         = [module.iam]
 }

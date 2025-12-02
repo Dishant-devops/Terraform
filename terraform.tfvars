@@ -186,3 +186,8 @@ route_table_association = {
     route_table_name = "privatert1"
   }
 }
+
+cluster_name = "my-cluster"
+min_size     = 1
+max_size     = 3
+desired_size = 2
