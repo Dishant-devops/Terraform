@@ -67,8 +67,6 @@ module "iam" {
 module "eks_cluster" {
   source       = "./modules/eks"
   cluster_name = var.cluster_name
-  # Pass ONLY the private subnets here
-  # Assuming your subnet module outputs "private_subnet_ids"
 private_subnet_ids = [
     for key, subnet in module.subnet_module : subnet.subnet_id
     if can(regex("private", key))
